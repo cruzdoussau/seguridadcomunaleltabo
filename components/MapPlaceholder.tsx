@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { AlertTriangle, LocateFixed, MapPin, Minus, Navigation, Plus } from "lucide-react";
 import { incidents } from "@/data/incidents";
+import { applyIncidentUpdate, incidentUpdatesEvent, readIncidentUpdates, type IncidentUpdate } from "@/lib/incidentUpdates";
+import { readStoredIncidents, storedIncidentsEvent } from "@/lib/incidentsStorage";
 import { cn } from "@/lib/utils";
 import type { Incident, IncidentType } from "@/types";
 
@@ -128,6 +131,8 @@ export function MapPlaceholder({ className }: { className?: string }) {
   const [center, setCenter] = useState(defaultCenter);
   const [viewport, setViewport] = useState(defaultViewport);
   const [isDragging, setIsDragging] = useState(false);
+  const [createdIncidents, setCreatedIncidents] = useState<Incident[]>([]);
+  const [updates, setUpdates] = useState<Record<string, IncidentUpdate>>({});
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -148,10 +153,32 @@ export function MapPlaceholder({ className }: { className?: string }) {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const syncIncidents = () => {
+      setCreatedIncidents(readStoredIncidents());
+      setUpdates(readIncidentUpdates());
+    };
+
+    syncIncidents();
+    window.addEventListener(storedIncidentsEvent, syncIncidents);
+    window.addEventListener(incidentUpdatesEvent, syncIncidents);
+    window.addEventListener("storage", syncIncidents);
+
+    return () => {
+      window.removeEventListener(storedIncidentsEvent, syncIncidents);
+      window.removeEventListener(incidentUpdatesEvent, syncIncidents);
+      window.removeEventListener("storage", syncIncidents);
+    };
+  }, []);
+
   const tiles = useMemo(() => buildTiles(center, zoom, viewport), [center, viewport, zoom]);
+  const mapIncidents = useMemo(
+    () => [...createdIncidents, ...incidents].map((incident) => applyIncidentUpdate(incident, updates[incident.id])),
+    [createdIncidents, updates]
+  );
   const sectors = useMemo(() => {
     return sectorCenters.map((sector) => {
-      const sectorIncidents = incidents.filter((incident) => incident.sector === sector.name);
+      const sectorIncidents = mapIncidents.filter((incident) => incident.sector === sector.name);
       const filteredIncidents = sectorIncidents.filter((incident) => filter === "Todos" || incident.tipo === filter);
       const delitos = sectorIncidents.filter((incident) => incident.tipo === "Delito").length;
       const incivilidades = sectorIncidents.filter((incident) => incident.tipo === "Incivilidad").length;
@@ -168,11 +195,11 @@ export function MapPlaceholder({ className }: { className?: string }) {
         labelCenter: getWeightedCenter(sectorIncidents, sector.center)
       };
     });
-  }, [filter]);
+  }, [filter, mapIncidents]);
 
   const maxIntensity = Math.max(...sectors.map((sector) => sector.intensity), 1);
   const selected = sectors.find((sector) => sector.name === selectedSector) ?? sectors[0];
-  const visibleIncidents = incidents.filter((incident) => filter === "Todos" || incident.tipo === filter);
+  const visibleIncidents = mapIncidents.filter((incident) => filter === "Todos" || incident.tipo === filter);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
@@ -266,7 +293,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
             onClick={() => {
               if (!shouldIgnoreClick()) setSelectedSector(sector.name);
             }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full outline-none"
+            className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none"
             style={{ left: point.x, top: point.y, width: size, height: size }}
             aria-label={`Seleccionar ${sector.name}`}
           >
@@ -285,16 +312,19 @@ export function MapPlaceholder({ className }: { className?: string }) {
         const point = projectToViewport(incident.ubicacion, center, zoom, viewport);
 
         return (
-          <div
+          <Link
             key={incident.id}
-            className={`absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg ring-4 ${
+            href={`/denuncias/${incident.id}`}
+            data-map-control="true"
+            className={`absolute z-30 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg ring-4 ${
               incident.tipo === "Delito" ? "text-red-600 ring-red-100" : "text-emerald-600 ring-emerald-100"
-            }`}
+            } transition hover:scale-110`}
             style={{ left: point.x, top: point.y }}
             title={`${incident.id} · ${incident.categoria}`}
+            aria-label={`Ver denuncia ${incident.id}`}
           >
             <MapPin className="h-4 w-4" aria-hidden />
-          </div>
+          </Link>
         );
       })}
 
@@ -311,7 +341,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
               setSelectedSector(sector.name);
               setCenter(sector.center);
             }}
-            className={`absolute min-w-24 -translate-x-1/2 translate-y-6 rounded-lg bg-white/95 px-3 py-2 text-center text-xs font-bold shadow-sm ring-1 transition hover:translate-y-5 ${
+            className={`absolute z-20 min-w-24 -translate-x-1/2 translate-y-6 rounded-lg bg-white/95 px-3 py-2 text-center text-xs font-bold shadow-sm ring-1 transition hover:translate-y-5 ${
               active ? "ring-2 ring-municipal-700" : "ring-slate-200"
             }`}
             style={{ left: point.x, top: point.y }}
@@ -322,7 +352,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
         );
       })}
 
-      <div data-map-control="true" className="absolute left-4 right-4 top-4 grid gap-3 lg:grid-cols-[1fr_auto]">
+      <div data-map-control="true" className="absolute left-4 right-4 top-4 z-40 grid gap-3 lg:grid-cols-[1fr_auto]">
         <div className="max-w-xl rounded-lg bg-white/95 p-4 shadow-panel ring-1 ring-slate-200">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-municipal-50 text-municipal-700">
@@ -350,7 +380,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
         </div>
       </div>
 
-      <div data-map-control="true" className="absolute right-4 top-24 flex flex-col overflow-hidden rounded-lg bg-white/95 shadow-panel ring-1 ring-slate-200">
+      <div data-map-control="true" className="absolute right-4 top-24 z-40 flex flex-col overflow-hidden rounded-lg bg-white/95 shadow-panel ring-1 ring-slate-200">
         <button
           type="button"
           onClick={() => setZoom((value) => Math.min(15, value + 1))}
@@ -377,7 +407,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
         </button>
       </div>
 
-      <div data-map-control="true" className="absolute bottom-4 left-4 w-[min(390px,calc(100%-2rem))] rounded-lg bg-white/95 p-4 shadow-panel ring-1 ring-slate-200">
+      <div data-map-control="true" className="absolute bottom-4 left-4 z-40 w-[min(390px,calc(100%-2rem))] rounded-lg bg-white/95 p-4 shadow-panel ring-1 ring-slate-200">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-municipal-700">Sector seleccionado</p>
@@ -395,12 +425,16 @@ export function MapPlaceholder({ className }: { className?: string }) {
         <div className="mt-4 space-y-2">
           {selected.incidents.length ? (
             selected.incidents.slice(0, 3).map((incident) => (
-              <div key={incident.id} className="rounded-md bg-slate-50 px-3 py-2">
+              <Link
+                key={incident.id}
+                href={`/denuncias/${incident.id}`}
+                className="block rounded-md bg-slate-50 px-3 py-2 transition hover:bg-municipal-50"
+              >
                 <p className="text-xs font-bold text-slate-900">
                   {incident.id} · {incident.tipo}
                 </p>
                 <p className="truncate text-xs text-slate-600">{incident.categoria}</p>
-              </div>
+              </Link>
             ))
           ) : (
             <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">Sin casos para el filtro actual.</p>
@@ -408,7 +442,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
         </div>
       </div>
 
-      <div data-map-control="true" className="absolute bottom-4 right-4 hidden rounded-lg bg-white/95 p-3 text-xs shadow-panel ring-1 ring-slate-200 sm:block">
+      <div data-map-control="true" className="absolute bottom-4 right-4 z-40 hidden rounded-lg bg-white/95 p-3 text-xs shadow-panel ring-1 ring-slate-200 sm:block">
         <div className="mb-2 font-bold text-slate-800">Leyenda</div>
         <LegendItem color="bg-red-600" label="Delitos" />
         <LegendItem color="bg-emerald-600" label="Incivilidades" />

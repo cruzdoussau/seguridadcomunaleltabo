@@ -18,6 +18,7 @@ export function IncidentForm() {
   const [sector, setSector] = useState(communalSectors[0]);
   const [date, setDate] = useState("2026-05-17");
   const [time, setTime] = useState("14:30");
+  const [origin, setOrigin] = useState("Web administrativa");
   const [priority, setPriority] = useState<IncidentPriority>("Media");
   const [reporter, setReporter] = useState("");
   const [phone, setPhone] = useState("");
@@ -104,6 +105,7 @@ export function IncidentForm() {
       sector,
       fecha: date,
       hora: time,
+      origen: origin,
       estado: "Pendiente",
       prioridad: priority,
       reportante: {
@@ -118,7 +120,7 @@ export function IncidentForm() {
           fecha: now,
           autor: "Formulario web",
           accion: "Ingreso",
-          detalle: "Denuncia creada desde el formulario administrativo."
+          detalle: `Denuncia creada desde ${origin}.`
         }
       ]
     };
@@ -151,6 +153,17 @@ export function IncidentForm() {
           {communalSectors.map((item) => (
             <option key={item}>{item}</option>
           ))}
+        </select>
+      </Field>
+      <Field label="Origen del reporte">
+        <select value={origin} onChange={(event) => setOrigin(event.target.value)} className="input">
+          <option>Web administrativa</option>
+          <option>Central telefónica</option>
+          <option>Atención presencial</option>
+          <option>App ciudadana</option>
+          <option>Personal en terreno</option>
+          <option>Inspector municipal</option>
+          <option>Derivación externa</option>
         </select>
       </Field>
       <Field label="Fecha">

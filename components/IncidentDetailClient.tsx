@@ -118,6 +118,7 @@ export function IncidentDetailClient({ incident, incidentId, users }: Props) {
             <Info label="Dirección" value={currentIncident.direccion} />
             <Info label="Sector" value={currentIncident.sector} />
             <Info label="Fecha y hora" value={`${currentIncident.fecha} ${currentIncident.hora}`} />
+            <Info label="Origen del reporte" value={currentIncident.origen ?? "No especificado"} />
             <Info label="Funcionario asignado" value={assigned ?? "Sin asignar"} />
             <Info label="Reportante" value={currentIncident.reportante.nombre} />
             <Info label="Teléfono" value={currentIncident.reportante.telefono} />
@@ -192,11 +193,23 @@ export function IncidentDetailClient({ incident, incidentId, users }: Props) {
         <aside className="space-y-6">
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
             <h3 className="text-base font-semibold text-slate-950">Ubicación</h3>
-            <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-municipal-50 text-municipal-700">
-              <div className="text-center">
-                <MapPin className="mx-auto h-8 w-8" aria-hidden />
-                <p className="mt-2 text-sm font-semibold">{currentIncident.sector}</p>
-                <p className="text-xs text-slate-500">{currentIncident.direccion}</p>
+            <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-municipal-50">
+              <iframe
+                title={`Ubicación GPS ${currentIncident.id}`}
+                src={locationMapUrl(currentIncident.ubicacion.lat, currentIncident.ubicacion.lng)}
+                className="h-56 w-full"
+                loading="lazy"
+              />
+              <div className="border-t border-slate-200 bg-white p-3">
+                <div className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-municipal-700" aria-hidden />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{currentIncident.direccion}</p>
+                    <p className="text-xs text-slate-500">
+                      {currentIncident.ubicacion.lat}, {currentIncident.ubicacion.lng}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -226,4 +239,10 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
+}
+
+function locationMapUrl(lat: number, lng: number) {
+  const delta = 0.006;
+  const bbox = `${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
 }

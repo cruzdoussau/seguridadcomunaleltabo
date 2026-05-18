@@ -28,6 +28,7 @@ export type Incident = {
   sector: string;
   fecha: string;
   hora: string;
+  origen?: string;
   estado: IncidentStatus;
   prioridad: IncidentPriority;
   reportante: Reporter;
