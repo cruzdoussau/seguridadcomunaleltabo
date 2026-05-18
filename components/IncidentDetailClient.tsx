@@ -2,18 +2,26 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle2, MapPin, Route, Save, UserPlus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, MapPin, Route, UserPlus } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { SectionHeader } from "@/components/SectionHeader";
 import { incidentStatuses } from "@/data/catalogs";
 import { applyIncidentUpdate, readIncidentUpdates, writeIncidentUpdate } from "@/lib/incidentUpdates";
+import { findStoredIncident } from "@/lib/incidentsStorage";
 import type { Incident, IncidentAction, IncidentStatus, MunicipalUser } from "@/types";
 
-export function IncidentDetailClient({ incident, users }: { incident: Incident; users: MunicipalUser[] }) {
-  const [status, setStatus] = useState<IncidentStatus>(incident.estado);
-  const [assigned, setAssigned] = useState<string | null>(incident.funcionarioAsignado);
+type Props = {
+  incident: Incident | null;
+  incidentId: string;
+  users: MunicipalUser[];
+};
+
+export function IncidentDetailClient({ incident, incidentId, users }: Props) {
+  const [currentIncident, setCurrentIncident] = useState<Incident | null>(incident);
+  const [status, setStatus] = useState<IncidentStatus>(incident?.estado ?? "Pendiente");
+  const [assigned, setAssigned] = useState<string | null>(incident?.funcionarioAsignado ?? null);
   const [selectedUser, setSelectedUser] = useState("");
-  const [history, setHistory] = useState<IncidentAction[]>(incident.historial);
+  const [history, setHistory] = useState<IncidentAction[]>(incident?.historial ?? []);
 
   const assignableUsers = useMemo(
     () => users.filter((user) => user.activo && user.rol !== "Visualizador"),
@@ -21,12 +29,28 @@ export function IncidentDetailClient({ incident, users }: { incident: Incident; 
   );
 
   useEffect(() => {
+    const baseIncident = incident ?? findStoredIncident(incidentId);
+    setCurrentIncident(baseIncident);
+    if (!baseIncident) return;
+
     const updates = readIncidentUpdates();
-    const merged = applyIncidentUpdate(incident, updates[incident.id]);
+    const merged = applyIncidentUpdate(baseIncident, updates[baseIncident.id]);
     setStatus(merged.estado);
     setAssigned(merged.funcionarioAsignado);
     setHistory(merged.historial);
-  }, [incident]);
+  }, [incident, incidentId]);
+
+  if (!currentIncident) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-panel">
+        <h2 className="text-xl font-bold text-slate-950">Denuncia no encontrada</h2>
+        <p className="mt-2 text-sm text-slate-600">No existe un caso mock o guardado localmente con el ID {incidentId}.</p>
+        <Link href="/denuncias" className="mt-5 inline-flex h-10 items-center rounded-lg bg-municipal-700 px-4 text-sm font-semibold text-white">
+          Volver a denuncias
+        </Link>
+      </div>
+    );
+  }
 
   const addHistory = (accion: string, detalle: string) => {
     const nextHistory = [
@@ -43,7 +67,7 @@ export function IncidentDetailClient({ incident, users }: { incident: Incident; 
   };
 
   const persist = (next: { estado?: IncidentStatus; funcionarioAsignado?: string | null; historial?: IncidentAction[] }) => {
-    writeIncidentUpdate(incident.id, next);
+    writeIncidentUpdate(currentIncident.id, next);
   };
 
   const assignOfficer = () => {
@@ -70,7 +94,7 @@ export function IncidentDetailClient({ incident, users }: { incident: Incident; 
   return (
     <div>
       <SectionHeader
-        title={`Detalle ${incident.id}`}
+        title={`Detalle ${currentIncident.id}`}
         description="Ficha operativa del caso con trazabilidad, ubicación y datos del reportante."
         action={
           <Link href="/denuncias" className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
@@ -83,22 +107,22 @@ export function IncidentDetailClient({ incident, users }: { incident: Incident; 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge kind="neutral" value={incident.tipo} />
+            <Badge kind="neutral" value={currentIncident.tipo} />
             <Badge kind="status" value={status} />
-            <Badge kind="priority" value={incident.prioridad} />
+            <Badge kind="priority" value={currentIncident.prioridad} />
           </div>
-          <h3 className="mt-4 text-xl font-bold text-slate-950">{incident.categoria}</h3>
-          <p className="mt-3 text-sm leading-6 text-slate-600">{incident.descripcion}</p>
+          <h3 className="mt-4 text-xl font-bold text-slate-950">{currentIncident.categoria}</h3>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{currentIncident.descripcion}</p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <Info label="Dirección" value={incident.direccion} />
-            <Info label="Sector" value={incident.sector} />
-            <Info label="Fecha y hora" value={`${incident.fecha} ${incident.hora}`} />
+            <Info label="Dirección" value={currentIncident.direccion} />
+            <Info label="Sector" value={currentIncident.sector} />
+            <Info label="Fecha y hora" value={`${currentIncident.fecha} ${currentIncident.hora}`} />
             <Info label="Funcionario asignado" value={assigned ?? "Sin asignar"} />
-            <Info label="Reportante" value={incident.reportante.nombre} />
-            <Info label="Teléfono" value={incident.reportante.telefono} />
-            <Info label="Coordenadas" value={`${incident.ubicacion.lat}, ${incident.ubicacion.lng}`} />
-            <Info label="Evidencia" value={incident.evidencia.length ? `${incident.evidencia.length} archivo(s)` : "Sin archivos"} />
+            <Info label="Reportante" value={currentIncident.reportante.nombre} />
+            <Info label="Teléfono" value={currentIncident.reportante.telefono} />
+            <Info label="Coordenadas" value={`${currentIncident.ubicacion.lat}, ${currentIncident.ubicacion.lng}`} />
+            <Info label="Evidencia" value={currentIncident.evidencia.length ? `${currentIncident.evidencia.length} archivo(s)` : "Sin archivos"} />
           </div>
 
           <div className="mt-6 grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[1fr_auto]">
@@ -155,9 +179,9 @@ export function IncidentDetailClient({ incident, users }: { incident: Incident; 
           <section className="mt-6">
             <h3 className="text-base font-semibold text-slate-950">Evidencia fotográfica</h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {incident.evidencia.map((src, index) => (
-                <figure key={src} className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                  <img src={src} alt={`Evidencia ${index + 1} del caso ${incident.id}`} className="h-36 w-full object-cover" />
+              {currentIncident.evidencia.map((src, index) => (
+                <figure key={`${src.slice(0, 32)}-${index}`} className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                  <img src={src} alt={`Evidencia ${index + 1} del caso ${currentIncident.id}`} className="h-36 w-full object-cover" />
                   <figcaption className="px-3 py-2 text-xs font-semibold text-slate-600">Evidencia {index + 1}</figcaption>
                 </figure>
               ))}
@@ -171,8 +195,8 @@ export function IncidentDetailClient({ incident, users }: { incident: Incident; 
             <div className="mt-4 flex h-48 items-center justify-center rounded-lg bg-municipal-50 text-municipal-700">
               <div className="text-center">
                 <MapPin className="mx-auto h-8 w-8" aria-hidden />
-                <p className="mt-2 text-sm font-semibold">{incident.sector}</p>
-                <p className="text-xs text-slate-500">{incident.direccion}</p>
+                <p className="mt-2 text-sm font-semibold">{currentIncident.sector}</p>
+                <p className="text-xs text-slate-500">{currentIncident.direccion}</p>
               </div>
             </div>
           </section>

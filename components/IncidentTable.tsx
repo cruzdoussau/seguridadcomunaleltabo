@@ -5,32 +5,39 @@ import { useEffect, useMemo, useState } from "react";
 import { Eye, Plus, Search } from "lucide-react";
 import { incidentPriorities, incidentStatuses } from "@/data/catalogs";
 import { applyIncidentUpdate, incidentUpdatesEvent, readIncidentUpdates, type IncidentUpdate } from "@/lib/incidentUpdates";
+import { readStoredIncidents, storedIncidentsEvent } from "@/lib/incidentsStorage";
 import type { Incident, IncidentPriority, IncidentStatus, IncidentType } from "@/types";
 import { Badge } from "@/components/Badge";
 
 export function IncidentTable({ incidents }: { incidents: Incident[] }) {
   const [updates, setUpdates] = useState<Record<string, IncidentUpdate>>({});
+  const [createdIncidents, setCreatedIncidents] = useState<Incident[]>([]);
   const [type, setType] = useState<"Todos" | IncidentType>("Todos");
   const [status, setStatus] = useState<"Todos" | IncidentStatus>("Todos");
   const [priority, setPriority] = useState<"Todos" | IncidentPriority>("Todos");
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    const syncUpdates = () => setUpdates(readIncidentUpdates());
+    const syncUpdates = () => {
+      setUpdates(readIncidentUpdates());
+      setCreatedIncidents(readStoredIncidents());
+    };
 
     syncUpdates();
     window.addEventListener(incidentUpdatesEvent, syncUpdates);
+    window.addEventListener(storedIncidentsEvent, syncUpdates);
     window.addEventListener("storage", syncUpdates);
 
     return () => {
       window.removeEventListener(incidentUpdatesEvent, syncUpdates);
+      window.removeEventListener(storedIncidentsEvent, syncUpdates);
       window.removeEventListener("storage", syncUpdates);
     };
   }, []);
 
   const displayIncidents = useMemo(
-    () => incidents.map((incident) => applyIncidentUpdate(incident, updates[incident.id])),
-    [incidents, updates]
+    () => [...createdIncidents, ...incidents].map((incident) => applyIncidentUpdate(incident, updates[incident.id])),
+    [createdIncidents, incidents, updates]
   );
 
   const filtered = useMemo(() => {
