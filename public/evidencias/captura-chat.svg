@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Evidencia mock de captura de chat">
+  <rect width="640" height="360" fill="#e2e8f0"/>
+  <rect x="150" y="40" width="340" height="280" rx="28" fill="#0f172a"/>
+  <rect x="172" y="74" width="296" height="212" rx="14" fill="#ffffff"/>
+  <rect x="194" y="108" width="178" height="34" rx="17" fill="#dbeafe"/>
+  <rect x="268" y="160" width="176" height="34" rx="17" fill="#fee2e2"/>
+  <rect x="194" y="214" width="224" height="34" rx="17" fill="#dbeafe"/>
+  <text x="38" y="48" fill="#0f172a" font-family="Arial" font-size="26" font-weight="700">INC-007 · Captura de mensaje</text>
+</svg>

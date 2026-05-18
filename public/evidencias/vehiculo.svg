@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Evidencia mock de vehículo">
+  <rect width="640" height="360" fill="#e0f2fe"/>
+  <rect x="0" y="245" width="640" height="115" fill="#475569"/>
+  <path d="M128 230l48-78h242l74 78z" fill="#1e3a8a"/>
+  <rect x="96" y="220" width="436" height="70" rx="18" fill="#0f63ad"/>
+  <rect x="192" y="164" width="92" height="54" fill="#bfdbfe"/>
+  <rect x="300" y="164" width="96" height="54" fill="#bfdbfe"/>
+  <circle cx="188" cy="292" r="34" fill="#111827"/>
+  <circle cx="442" cy="292" r="34" fill="#111827"/>
+  <path d="M436 220l50-54" stroke="#ef4444" stroke-width="10" stroke-linecap="round"/>
+  <text x="38" y="48" fill="#092540" font-family="Arial" font-size="26" font-weight="700">INC-003 · Vehículo afectado</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Evidencia mock de comercio ambulante">
+  <rect width="640" height="360" fill="#fef3c7"/>
+  <rect x="86" y="162" width="468" height="126" rx="14" fill="#ffffff"/>
+  <path d="M92 162l44-70h368l44 70z" fill="#ef4444"/>
+  <path d="M136 92h74v70h-118zM210 92h74v70h-74zM284 92h74v70h-74zM358 92h74v70h-74zM432 92h72l44 70h-116z" fill="#f8fafc" opacity=".9"/>
+  <rect x="160" y="206" width="96" height="82" fill="#0f63ad"/>
+  <rect x="330" y="210" width="132" height="26" fill="#22c55e"/>
+  <text x="38" y="48" fill="#78350f" font-family="Arial" font-size="26" font-weight="700">INC-006 · Comercio no autorizado</text>
+</svg>

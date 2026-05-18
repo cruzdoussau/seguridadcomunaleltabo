@@ -47,7 +47,9 @@ export default function DashboardPage() {
             {latest.map((incident) => (
               <article key={incident.id} className="grid gap-3 p-5 md:grid-cols-[1fr_auto]">
                 <div>
-                  <p className="text-sm font-bold text-municipal-700">{incident.id}</p>
+                  <Link href={`/denuncias/${incident.id}`} className="text-sm font-bold text-municipal-700 hover:text-municipal-500">
+                    {incident.id}
+                  </Link>
                   <h4 className="mt-1 font-semibold text-slate-950">{incident.categoria}</h4>
                   <p className="mt-1 text-sm text-slate-500">{incident.sector} · {incident.fecha} {incident.hora}</p>
                 </div>

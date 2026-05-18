@@ -1,22 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Eye, Plus, Search } from "lucide-react";
 import { incidentPriorities, incidentStatuses } from "@/data/catalogs";
+import { applyIncidentUpdate, incidentUpdatesEvent, readIncidentUpdates, type IncidentUpdate } from "@/lib/incidentUpdates";
 import type { Incident, IncidentPriority, IncidentStatus, IncidentType } from "@/types";
 import { Badge } from "@/components/Badge";
 
 export function IncidentTable({ incidents }: { incidents: Incident[] }) {
+  const [updates, setUpdates] = useState<Record<string, IncidentUpdate>>({});
   const [type, setType] = useState<"Todos" | IncidentType>("Todos");
   const [status, setStatus] = useState<"Todos" | IncidentStatus>("Todos");
   const [priority, setPriority] = useState<"Todos" | IncidentPriority>("Todos");
   const [query, setQuery] = useState("");
 
+  useEffect(() => {
+    const syncUpdates = () => setUpdates(readIncidentUpdates());
+
+    syncUpdates();
+    window.addEventListener(incidentUpdatesEvent, syncUpdates);
+    window.addEventListener("storage", syncUpdates);
+
+    return () => {
+      window.removeEventListener(incidentUpdatesEvent, syncUpdates);
+      window.removeEventListener("storage", syncUpdates);
+    };
+  }, []);
+
+  const displayIncidents = useMemo(
+    () => incidents.map((incident) => applyIncidentUpdate(incident, updates[incident.id])),
+    [incidents, updates]
+  );
+
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
 
-    return incidents.filter((incident) => {
+    return displayIncidents.filter((incident) => {
       const matchesQuery =
         !normalized ||
         [incident.sector, incident.descripcion, incident.categoria, incident.direccion].some((value) =>
@@ -30,7 +50,7 @@ export function IncidentTable({ incidents }: { incidents: Incident[] }) {
         matchesQuery
       );
     });
-  }, [incidents, priority, query, status, type]);
+  }, [displayIncidents, priority, query, status, type]);
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-panel">
@@ -81,6 +101,7 @@ export function IncidentTable({ incidents }: { incidents: Incident[] }) {
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Estado</th>
               <th className="px-4 py-3">Prioridad</th>
+              <th className="px-4 py-3">Acción</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -97,6 +118,15 @@ export function IncidentTable({ incidents }: { incidents: Incident[] }) {
                 <td className="whitespace-nowrap px-4 py-4 text-slate-700">{incident.fecha} {incident.hora}</td>
                 <td className="whitespace-nowrap px-4 py-4"><Badge kind="status" value={incident.estado} /></td>
                 <td className="whitespace-nowrap px-4 py-4"><Badge kind="priority" value={incident.prioridad} /></td>
+                <td className="whitespace-nowrap px-4 py-4">
+                  <Link
+                    href={`/denuncias/${incident.id}`}
+                    className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-municipal-700 hover:bg-municipal-50"
+                  >
+                    <Eye className="h-4 w-4" aria-hidden />
+                    Ver
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

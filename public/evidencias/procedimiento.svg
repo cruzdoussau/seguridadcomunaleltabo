@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Evidencia mock de procedimiento reservado">
+  <rect width="640" height="360" fill="#fee2e2"/>
+  <rect x="128" y="84" width="384" height="220" rx="18" fill="#ffffff"/>
+  <path d="M320 120l92 44v70c0 54-38 82-92 104-54-22-92-50-92-104v-70z" fill="#b91c1c"/>
+  <path d="M284 218l24 24 54-70" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="38" y="48" fill="#7f1d1d" font-family="Arial" font-size="26" font-weight="700">INC-005 · Evidencia reservada</text>
+</svg>

@@ -14,7 +14,7 @@ export const incidents: Incident[] = [
     prioridad: "Alta",
     reportante: { nombre: "Juan Pérez", telefono: "+56912345678" },
     ubicacion: { lat: -33.4571, lng: -71.6676 },
-    evidencia: [],
+    evidencia: ["/evidencias/ingreso-forzado.svg"],
     funcionarioAsignado: null,
     historial: [
       {
@@ -38,7 +38,7 @@ export const incidents: Incident[] = [
     prioridad: "Media",
     reportante: { nombre: "María Contreras", telefono: "+56987654321" },
     ubicacion: { lat: -33.5037, lng: -71.6267 },
-    evidencia: ["audio-referencia.mp3"],
+    evidencia: ["/evidencias/ruidos-molestos.svg"],
     funcionarioAsignado: "Patrulla Norte",
     historial: [
       { fecha: "2026-05-17 01:16", autor: "App Ciudadana", accion: "Ingreso", detalle: "Reporte ciudadano recibido." },
@@ -58,7 +58,7 @@ export const incidents: Incident[] = [
     prioridad: "Alta",
     reportante: { nombre: "Roberto Díaz", telefono: "+56922224444" },
     ubicacion: { lat: -33.4726, lng: -71.6442 },
-    evidencia: ["foto-vehiculo.jpg"],
+    evidencia: ["/evidencias/vehiculo.svg"],
     funcionarioAsignado: "Inspector Municipal A. Ruiz",
     historial: [
       { fecha: "2026-05-16 19:49", autor: "Central de Seguridad", accion: "Ingreso", detalle: "Se registra denuncia presencial." },
@@ -78,7 +78,7 @@ export const incidents: Incident[] = [
     prioridad: "Baja",
     reportante: { nombre: "Ana Silva", telefono: "+56933335555" },
     ubicacion: { lat: -33.4918, lng: -71.6572 },
-    evidencia: ["microbasural.jpg"],
+    evidencia: ["/evidencias/microbasural.svg"],
     funcionarioAsignado: "Inspector Municipal C. Fuentes",
     historial: [
       { fecha: "2026-05-16 10:13", autor: "Central de Seguridad", accion: "Ingreso", detalle: "Se adjunta fotografía del punto." },
@@ -98,7 +98,7 @@ export const incidents: Incident[] = [
     prioridad: "Crítica",
     reportante: { nombre: "Reserva identidad", telefono: "+56900001111" },
     ubicacion: { lat: -33.4477, lng: -71.6816 },
-    evidencia: [],
+    evidencia: ["/evidencias/procedimiento.svg"],
     funcionarioAsignado: "Coordinación Turno Noche",
     historial: [
       { fecha: "2026-05-15 22:06", autor: "Central de Seguridad", accion: "Ingreso", detalle: "Caso priorizado por riesgo a integridad física." },
@@ -118,7 +118,7 @@ export const incidents: Incident[] = [
     prioridad: "Media",
     reportante: { nombre: "Patricia Araya", telefono: "+56944446666" },
     ubicacion: { lat: -33.5001, lng: -71.6304 },
-    evidencia: [],
+    evidencia: ["/evidencias/comercio-ambulante.svg"],
     funcionarioAsignado: null,
     historial: [
       { fecha: "2026-05-15 12:23", autor: "Central de Seguridad", accion: "Ingreso", detalle: "Reporte ingresado por formulario web." },
@@ -138,7 +138,7 @@ export const incidents: Incident[] = [
     prioridad: "Media",
     reportante: { nombre: "Carlos Medina", telefono: "+56955557777" },
     ubicacion: { lat: -33.4324, lng: -71.6899 },
-    evidencia: ["captura-chat.png"],
+    evidencia: ["/evidencias/captura-chat.svg"],
     funcionarioAsignado: null,
     historial: [
       { fecha: "2026-05-14 18:04", autor: "Central de Seguridad", accion: "Ingreso", detalle: "Se recibe relato y capturas de conversación." }
@@ -157,7 +157,7 @@ export const incidents: Incident[] = [
     prioridad: "Baja",
     reportante: { nombre: "Guardia Municipal", telefono: "+56966668888" },
     ubicacion: { lat: -33.4562, lng: -71.6684 },
-    evidencia: ["rayado-municipal.jpg"],
+    evidencia: ["/evidencias/grafiti.svg"],
     funcionarioAsignado: "Mantención Municipal",
     historial: [
       { fecha: "2026-05-14 08:45", autor: "Guardia Municipal", accion: "Ingreso", detalle: "Se deja registro fotográfico." },

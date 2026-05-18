@@ -7,7 +7,37 @@ import type { IncidentType } from "@/types";
 
 export function IncidentForm() {
   const [type, setType] = useState<IncidentType>("Delito");
+  const [location, setLocation] = useState("-33.456000, -71.666000");
+  const [locationStatus, setLocationStatus] = useState("");
+  const [isLocating, setIsLocating] = useState(false);
   const categories = useMemo(() => (type === "Delito" ? crimeCategories : incivilityCategories), [type]);
+
+  const captureCurrentLocation = () => {
+    if (!("geolocation" in navigator)) {
+      setLocationStatus("Este navegador no soporta geolocalización.");
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationStatus("Solicitando permiso GPS...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        setLocationStatus(`Ubicación capturada con precisión aproximada de ${Math.round(accuracy)} m.`);
+        setIsLocating(false);
+      },
+      (error) => {
+        setLocationStatus(error.message || "No fue posible obtener la ubicación.");
+        setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0
+      }
+    );
+  };
 
   return (
     <form className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-panel lg:grid-cols-2">
@@ -47,13 +77,20 @@ export function IncidentForm() {
           ))}
         </select>
       </Field>
-      <Field label="Ubicación mock">
+      <Field label="Ubicación GPS / mock">
         <div className="flex gap-2">
-          <input className="input" defaultValue="-33.456, -71.666" />
-          <button type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-municipal-700">
+          <input className="input" value={location} onChange={(event) => setLocation(event.target.value)} />
+          <button
+            type="button"
+            onClick={captureCurrentLocation}
+            disabled={isLocating}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-municipal-700 hover:bg-municipal-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Capturar ubicación GPS"
+          >
             <MapPin className="h-5 w-5" aria-hidden />
           </button>
         </div>
+        {locationStatus ? <p className="mt-2 text-xs font-medium text-slate-500">{locationStatus}</p> : null}
       </Field>
       <Field label="Nombre del reportante">
         <input className="input" placeholder="Nombre completo" />

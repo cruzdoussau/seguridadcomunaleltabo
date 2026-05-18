@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Evidencia mock de grafiti">
+  <rect width="640" height="360" fill="#f1f5f9"/>
+  <rect x="52" y="100" width="536" height="180" fill="#cbd5e1"/>
+  <path d="M136 220c34-88 78-88 94 0 42-100 86-94 104-4 34-76 84-86 122-10" fill="none" stroke="#ef4444" stroke-width="20" stroke-linecap="round"/>
+  <path d="M126 248h390" stroke="#64748b" stroke-width="10" stroke-linecap="round"/>
+  <text x="38" y="48" fill="#334155" font-family="Arial" font-size="26" font-weight="700">INC-008 · Rayado en muro</text>
+</svg>
