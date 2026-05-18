@@ -133,6 +133,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
   const [isDragging, setIsDragging] = useState(false);
   const [createdIncidents, setCreatedIncidents] = useState<Incident[]>([]);
   const [updates, setUpdates] = useState<Record<string, IncidentUpdate>>({});
+  const [focusedIncidentId, setFocusedIncidentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -200,6 +201,14 @@ export function MapPlaceholder({ className }: { className?: string }) {
   const maxIntensity = Math.max(...sectors.map((sector) => sector.intensity), 1);
   const selected = sectors.find((sector) => sector.name === selectedSector) ?? sectors[0];
   const visibleIncidents = mapIncidents.filter((incident) => filter === "Todos" || incident.tipo === filter);
+  const selectedIncidents = useMemo(() => {
+    if (!focusedIncidentId) return selected.incidents;
+
+    const focused = selected.incidents.find((incident) => incident.id === focusedIncidentId);
+    if (!focused) return selected.incidents;
+
+    return [focused, ...selected.incidents.filter((incident) => incident.id !== focusedIncidentId)];
+  }, [focusedIncidentId, selected.incidents]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
@@ -291,7 +300,10 @@ export function MapPlaceholder({ className }: { className?: string }) {
             key={`${sector.name}-heat`}
             type="button"
             onClick={() => {
-              if (!shouldIgnoreClick()) setSelectedSector(sector.name);
+              if (!shouldIgnoreClick()) {
+                setSelectedSector(sector.name);
+                setFocusedIncidentId(null);
+              }
             }}
             className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none"
             style={{ left: point.x, top: point.y, width: size, height: size }}
@@ -312,19 +324,25 @@ export function MapPlaceholder({ className }: { className?: string }) {
         const point = projectToViewport(incident.ubicacion, center, zoom, viewport);
 
         return (
-          <Link
+          <button
             key={incident.id}
-            href={`/denuncias/${incident.id}`}
+            type="button"
             data-map-control="true"
+            onClick={() => {
+              if (shouldIgnoreClick()) return;
+              setSelectedSector(incident.sector);
+              setFocusedIncidentId(incident.id);
+              setCenter(incident.ubicacion);
+            }}
             className={`absolute z-30 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg ring-4 ${
               incident.tipo === "Delito" ? "text-red-600 ring-red-100" : "text-emerald-600 ring-emerald-100"
             } transition hover:scale-110`}
             style={{ left: point.x, top: point.y }}
             title={`${incident.id} · ${incident.categoria}`}
-            aria-label={`Ver denuncia ${incident.id}`}
+            aria-label={`Seleccionar sector ${incident.sector} desde ${incident.id}`}
           >
             <MapPin className="h-4 w-4" aria-hidden />
-          </Link>
+          </button>
         );
       })}
 
@@ -339,6 +357,7 @@ export function MapPlaceholder({ className }: { className?: string }) {
             onClick={() => {
               if (shouldIgnoreClick()) return;
               setSelectedSector(sector.name);
+              setFocusedIncidentId(null);
               setCenter(sector.center);
             }}
             className={`absolute z-20 min-w-24 -translate-x-1/2 translate-y-6 rounded-lg bg-white/95 px-3 py-2 text-center text-xs font-bold shadow-sm ring-1 transition hover:translate-y-5 ${
@@ -422,13 +441,15 @@ export function MapPlaceholder({ className }: { className?: string }) {
           <HeatMetric label="Delitos" value={selected.delitos} />
           <HeatMetric label="Incivil." value={selected.incivilidades} />
         </div>
-        <div className="mt-4 space-y-2">
-          {selected.incidents.length ? (
-            selected.incidents.slice(0, 3).map((incident) => (
+        <div className="mt-4 max-h-64 space-y-2 overflow-y-auto pr-1">
+          {selectedIncidents.length ? (
+            selectedIncidents.map((incident) => (
               <Link
                 key={incident.id}
                 href={`/denuncias/${incident.id}`}
-                className="block rounded-md bg-slate-50 px-3 py-2 transition hover:bg-municipal-50"
+                className={`block rounded-md px-3 py-2 transition hover:bg-municipal-50 ${
+                  focusedIncidentId === incident.id ? "bg-municipal-50 ring-1 ring-municipal-200" : "bg-slate-50"
+                }`}
               >
                 <p className="text-xs font-bold text-slate-900">
                   {incident.id} · {incident.tipo}
